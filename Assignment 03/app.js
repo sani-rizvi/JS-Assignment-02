@@ -1,69 +1,48 @@
-let movies = [];
+document.getElementById('submit-btn').addEventListener('click', function() {
 
-function loadMovies() {
-  let xhr = new XMLHttpRequest();
-  xhr.open("GET", "data.json");
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      movies = JSON.parse(xhr.responseText);
-      console.log(movies);
-    } else {
-      console.log("Error loading movies: " + xhr.status);
-    }
-  };
-  xhr.send();
-}
-
-loadMovies();
-
-function displayMovies(movies) {
-    let movieList = document.getElementById("movie-list");
-    movieList.innerHTML = "";
-    movies.forEach(function(movie) {
-      let movieItem = document.createElement("li");
-      movieItem.textContent = movie.title + " (" + movie.releaseYear + ")";
-      movieList.appendChild(movieItem);
-    });
-  }
-  function getMovies(genre, rating, year) {
-    let filteredMovies = movies.filter(function(movie) {
-      return movie.genre === genre &&
-             movie.rating >= rating &&
-             movie.releaseYear >= year;
-    });
-    displayMovies(filteredMovies);
-  }
-
-let genreInput = document.getElementById("genre");
-let ratingInput = document.getElementById("rating");
-let yearInput = document.getElementById("year");
-let submitButton = document.getElementById("submit");
+    const genre = document.getElementById('genre').value.toLowerCase();
+    const rating = document.getElementById('rating').value;
+    const releaseYear = document.getElementById('release-year').value;
   
-submitButton.addEventListener("click", function(event) {
-  event.preventDefault();
-  let genre = genreInput.value;
-  let rating = parseFloat(ratingInput.value);
-  let year = parseInt(yearInput.value);
-  if (genre && rating && year) {
-    getMovies(genre, rating, year);
-  } else {
-    alert("Please enter valid input for all fields.");
-  }
-});   
-if (filteredMovies.length > 0) {
-        movieContainer.innerHTML = "";
-        filteredMovies.forEach((movie) => {
-          const movieDiv = document.createElement("div");
-          movieDiv.classList.add("movie");
-          movieDiv.innerHTML = `
-            <h2>${movie.title}</h2>
-            <p><strong>Genre:</strong> ${movie.genre}</p>
-            <p><strong>Rating:</strong> ${movie.rating}</p>
-            <p><strong>Year:</strong> ${movie.year}</p>
-          `;
-          movieContainer.appendChild(movieDiv);
-        });
-      } else {
-        movieContainer.innerHTML = "<p>No movies found.</p>";
+    fetch("data.json")
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(movieData) {
+        const filteredMovies = filterMovies(movieData, genre, rating, releaseYear);
+        displayMovies(filteredMovies);
+      });
+  });
+  
+  function filterMovies(movieData, genre, rating, releaseYear) {
+    return movieData.filter(function(movie) {
+      if (genre && !movie.genre.toLowerCase().includes(genre)) {
+        return false;
       }
-      
+      if (rating && movie.rating < rating) {
+        return false;
+      }
+      if (releaseYear && movie.releaseYear !== releaseYear) {
+        return false;
+      }
+      return true;
+    });
+  }
+  
+  function displayMovies(movies) {
+    const movieContainer = document.getElementById('movie-recommendation-app');
+    movieContainer.innerHTML = '';
+  
+    movies.forEach(function(movie) {
+      const movieElement = document.createElement('div');
+      movieElement.classList.add('movie');
+      movieElement.innerHTML = `
+        <h2>${movie.title}</h2>
+        <p>Genre: ${movie.genre}</p>
+        <p>Rating: ${movie.rating}</p>
+        <p>Release Year: ${movie.releaseYear}</p>
+      `;
+      movieContainer.appendChild(movieElement);
+    });
+  }
+  
